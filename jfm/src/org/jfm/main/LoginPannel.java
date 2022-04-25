@@ -16,11 +16,14 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import edu.asu.ser335.jfm.LogBook;
 import edu.asu.ser335.jfm.RolesSingleton;
+import edu.asu.ser335.jfm.UsersSingleton;
 
 /**
  * @author Nikhil Hiremath
@@ -152,7 +155,19 @@ public class LoginPannel extends JFrame implements ActionListener {
 	public boolean validateUser(String uName, String pwd, String role) {
 		
 		// SER335 TODO: Implement your validation code here.
-
-		return true;
+	    boolean status = true;
+	    try {
+            if(UsersSingleton.createPasswordMapping(uName,  pwd, role)) {
+               status = true;
+            } else {
+                status = false;
+                LogBook.logEvent(String.format("Login failed [name=%s, password=%s, role=%s]", uName, pwd, role));
+            }
+        } catch (Exception e) {
+            
+            e.printStackTrace();
+            status = false;
+        }
+		return status;
 	}
 }

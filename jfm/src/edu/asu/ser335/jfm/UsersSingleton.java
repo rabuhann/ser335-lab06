@@ -64,6 +64,12 @@ public final class UsersSingleton {
 		if (!userName.isEmpty() && !password.isEmpty() && !role.isEmpty()) {
 			if (UsersSingleton.userRoleMapping.containsKey(userName)
 					&& UsersSingleton.userRoleMapping.get(userName).equals(role)) {
+			    
+			    // username, role and password: all match
+			    if(UsersSingleton.userPasswordMapping.get(userName).equals(password)) {
+			        return true;
+			    }
+			    
 				rval = false;
 			} else {
 				// If user does not exists, create a new salted password and add the user details
