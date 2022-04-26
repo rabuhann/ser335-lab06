@@ -17,7 +17,7 @@ import org.jfm.event.ChangeViewEvent;
 import org.jfm.event.ChangeViewListener;
 import org.jfm.po.AddUserAction;
 import org.jfm.po.ButtonsPanel;
-
+import org.jfm.po.ChangePasswordAction;
 import org.jfm.po.CopyAction;
 import org.jfm.po.EditFileAction;
 import org.jfm.po.LogOutAction;
@@ -187,15 +187,31 @@ public class MainPanel extends JPanel {
 
 	String[] rpm = RolesSingleton.getRoleMapping().getPrivilegesForRole(userRole); 
 
-	// SER335: You need to figure out uner what roles to allow these buttons to be added
+	// SER335: You need to figure out under what roles to allow these buttons to be added
 	// You can comment each line out if you like and see how the UI changes.
-	/*
-	    buttons.addElement(f3Button); //View Button			
+	 	
+	/*********** TASK H2 ***********/
+	/*******************************/
+	buttons.addElement(f3Button); //View Button, for everyone	
+	/* Add these roles if user is "admin" or "developer" */
+	if(!userRole.equals("user")) {
+
 	    buttons.addElement(f4Button); //Edit Button
 	    buttons.addElement(f5Button); //Copy Button
 	    buttons.addElement(f6Button); //Move Button
 	    buttons.addElement(f7Button); //Mkdir Button
-	*/
+	}
+	
+	/*************** TASK H3 ************/
+	/************************************/
+	JButton changePasswordButton = new JButton("Change Password");
+	ChangePasswordAction changePassword = new ChangePasswordAction();
+	changePasswordButton.addActionListener(changePassword);
+	
+	if(userRole.equals("admin")) {
+		buttons.addElement(changePasswordButton); // ChangePassword Button, only for admin
+	}
+	
 	for (int i = 0; rpm != null && i < rpm.length; i++) {
 	    System.out.println("Privileges for " + userRole + " role: " + rpm[i] + i);
 			
