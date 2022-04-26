@@ -23,7 +23,9 @@ import javax.swing.JTextField;
 
 import edu.asu.ser335.jfm.LogBook;
 import edu.asu.ser335.jfm.RolesSingleton;
+import edu.asu.ser335.jfm.SaltsSingleton;
 import edu.asu.ser335.jfm.UsersSingleton;
+import io.whitfin.siphash.SipHasher;
 
 /**
  * @author Nikhil Hiremath
@@ -155,19 +157,32 @@ public class LoginPannel extends JFrame implements ActionListener {
 	public boolean validateUser(String uName, String pwd, String role) {
 		
 		// SER335 TODO: Implement your validation code here.
-	    boolean status = true;
+	    if(uName.isEmpty() || pwd.isEmpty() || role.isEmpty()) {
+	        JOptionPane.showMessageDialog(null, "Missing Input Field!");
+	        return false;
+	    }
+	    
 	    try {
-            if(UsersSingleton.createPasswordMapping(uName,  pwd, role)) {
-               status = true;
-            } else {
-                status = false;
-                LogBook.logEvent(String.format("Login failed [name=%s, password=%s, role=%s]", uName, pwd, role));
-            }
-        } catch (Exception e) {
+	        
+            String userSalt = SaltsSingleton.getUserSalts().getUserSalt(uName);
+            long generatedSaltedPassword = SipHasher.hash(userSalt.getBytes(), pwd.getBytes());
+            long storedSaltedPassword = Long.parseLong(UsersSingleton.getUserPasswordMapping().get(uName));
             
+            if(generatedSaltedPassword != storedSaltedPassword) {
+                LogBook.logEvent(String.format("Login Failed [name=%s, password=%s, role=%s]", uName, pwd, role));
+                return false;
+            }
+            
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
-            status = false;
-        }
-		return status;
+            JOptionPane.showMessageDialog(null, e.getMessage());
+            return false;
+        }	    
+	    return true;
+	}
+	
+	class LoginObserver implements Observer {
+	    
 	}
 }
