@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.List;
+import java.util.*;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -36,6 +37,7 @@ import org.jfm.main.User;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.asu.ser335.jfm.LogBook;
 import edu.asu.ser335.jfm.RolesSingleton;
 import edu.asu.ser335.jfm.SaltsSingleton;
 import edu.asu.ser335.jfm.UsersSingleton;
@@ -139,31 +141,72 @@ public class ChangePasswordPannel extends JFrame implements ActionListener {
 		    status = false;
 		}
 		
-		else {
-		try {
-            if (UsersSingleton.getUserRoleMapping().containsKey(userName)
-                    && UsersSingleton.getUserRoleMapping().get(userName).equals(role.trim())) {
-                
-                // remove old user salt
-                SaltsSingleton.getUserSaltsMapping().remove(userName); 
-                
-                // remove old user-saltedPassword mapping
-                UsersSingleton.getUserPasswordMapping().remove(userName);
-                
-                // remove old user role
-                UsersSingleton.getUserRoleMapping().remove(userName);
-                
-                // simply create a new user with different password
-               UsersSingleton.createPasswordMapping(userName, password, role);
-   
-            }
-        } catch (Exception e2) {
-            // TODO Auto-generated catch block
-            e2.printStackTrace();
-            status = false;
-        }
-		}
-		JOptionPane.showMessageDialog(null, status ? "Password changed" : "Password change failed");
+		// use observer pattern
+		ChangePasswordMonitor observer = new ChangePasswordMonitor();
+		UpdatePassword changePass = new UpdatePassword();
+		changePass.addObserver(observer);
+		
+		changePass.update(userName,  password, role);
 	}
+	
+	class UpdatePassword extends Observable {
+	    
+	    String userName, password, role;
+	    
+	    public boolean update(String userName, String password, String role) {
+	       
+	        boolean status = true;
+	        
+	        this.userName = userName;
+	        this.password = password;
+	        this.role = role;
+	        
+	            try {
+	                if (UsersSingleton.getUserRoleMapping().containsKey(userName)
+	                        && UsersSingleton.getUserRoleMapping().get(userName).equals(role.trim())) {
+	                    
+	                    // remove old user salt
+	                    SaltsSingleton.getUserSaltsMapping().remove(userName); 
+	                    
+	                    // remove old user-saltedPassword mapping
+	                    UsersSingleton.getUserPasswordMapping().remove(userName);
+	                    
+	                    // remove old user role
+	                    UsersSingleton.getUserRoleMapping().remove(userName);
+	                    
+	                    // simply create a new user with different password
+	                   UsersSingleton.createPasswordMapping(userName, password, role);
+	       
+	                }
+	            } catch (Exception e2) {
+	                // TODO Auto-generated catch block
+	                e2.printStackTrace();
+	                status = false;
+	            }
+	            
+	            if(status) {
+	                setChanged();
+	                notifyObservers();
+	            }
+	            
+	            if(status) {
+	                JOptionPane.showMessageDialog(null, status ? "Password changed" : "Password change failed");
+	            }
+	            
+	            return status;
+	    }
+	}
+
+    /* Login Activity Observer, logs the failed login attempt */
+    class ChangePasswordMonitor implements Observer {
+
+        @Override
+        public void update(Observable o, Object arg) {
+            // TODO Auto-generated method stub
+            UpdatePassword update = (UpdatePassword)o;
+            LogBook.logEvent(String.format("Update Password [name=%s, password=%s, role=%s]", update.userName, update.password, update.role));
+        }
+        
+    }
 
 }
