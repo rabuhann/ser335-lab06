@@ -10,6 +10,9 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -124,9 +127,14 @@ public class LoginPannel extends JFrame implements ActionListener {
 		String userName = textUsername.getText();
 		String password = String.valueOf(fieldPassword.getPassword());
 		role = (String) roleList.getSelectedItem();
+		
+		/* monitor using observer pattern */
+		LoginMonitor loginMonitor = new LoginMonitor();
+		Validation validation = new Validation();
+		validation.addObserver(loginMonitor);
 
 		// Validate User and redirect to Main application on successful login
-		if (validateUser(userName, password, role)) {
+		if(validation.validateUser(userName, password, role)) {
 			message.setText(" Hello " + userName + "");
 
 			// on successful login redirect to next screen
@@ -152,37 +160,56 @@ public class LoginPannel extends JFrame implements ActionListener {
 		}
 	}
 
+	class Validation extends Observable {
 
-	// Login Validation
-	public boolean validateUser(String uName, String pwd, String role) {
-		
-		// SER335 TODO: Implement your validation code here.
-	    if(uName.isEmpty() || pwd.isEmpty() || role.isEmpty()) {
-	        JOptionPane.showMessageDialog(null, "Missing Input Field!");
-	        return false;
-	    }
+	    String uName, pwd, role;
 	    
-	    try {
+	    // Login Validation
+	    public boolean validateUser(String uName, String pwd, String role) {
 	        
-            String userSalt = SaltsSingleton.getUserSalts().getUserSalt(uName);
-            long generatedSaltedPassword = SipHasher.hash(userSalt.getBytes(), pwd.getBytes());
-            long storedSaltedPassword = Long.parseLong(UsersSingleton.getUserPasswordMapping().get(uName));
-            
-            if(generatedSaltedPassword != storedSaltedPassword) {
-                LogBook.logEvent(String.format("Login Failed [name=%s, password=%s, role=%s]", uName, pwd, role));
-                return false;
-            }
-            
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, e.getMessage());
-            return false;
-        }	    
-	    return true;
+	        // SER335 TODO: Implement your validation code here.
+	        if(uName.isEmpty() || pwd.isEmpty() || role.isEmpty()) {
+	            JOptionPane.showMessageDialog(null, "Missing Input Field!");
+	            return false;
+	        }
+	        
+	        /* store them for later access */
+	        this.uName = uName;
+	        this.pwd = pwd;
+	        this.role = role;
+	        
+	        try {
+	            
+	            String userSalt = SaltsSingleton.getUserSalts().getUserSalt(uName);
+	            long generatedSaltedPassword = SipHasher.hash(userSalt.getBytes(), pwd.getBytes());
+	            long storedSaltedPassword = Long.parseLong(UsersSingleton.getUserPasswordMapping().get(uName));
+	            
+	            if(generatedSaltedPassword != storedSaltedPassword) {         
+	                setChanged();
+	                notifyObservers();
+	                return false;
+	            }
+	            
+	        } catch (Exception e) {
+	            // TODO Auto-generated catch block
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(null, e.getMessage());
+	            return false;
+	        }       
+	        return true;
+	    }
 	}
 	
-	class LoginObserver implements Observer {
+	/* Login Activity Observer, logs the failed login attempt */
+	class LoginMonitor implements Observer {
+
+        @Override
+        public void update(Observable o, Object arg) {
+            // TODO Auto-generated method stub
+            Validation validation = (Validation)o;
+            LogBook.logEvent(String.format("Login Failed [name=%s, password=%s, role=%s]", validation.uName, validation.pwd, validation.role));
+        }
 	    
 	}
+	
 }
