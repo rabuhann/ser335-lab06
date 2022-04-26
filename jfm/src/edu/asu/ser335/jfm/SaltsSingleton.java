@@ -30,11 +30,15 @@ import io.whitfin.siphash.SipHasher;
  *
  */
 public final class SaltsSingleton {
-	private static final Hashtable<String, String> userSaltsMapping = new Hashtable<String, String>();
+	private static Hashtable<String, String> userSaltsMapping = new Hashtable<String, String>();
 	private static SaltsSingleton theSalts = null;
 	
 	private SaltsSingleton() throws Exception {
 		SaltsSingleton.loadSalts();
+	}
+	
+	public static final Hashtable<String, String> getUserSaltsMapping() {
+	    return userSaltsMapping;
 	}
 	
 	public static final SaltsSingleton getUserSalts() throws Exception {
@@ -48,7 +52,7 @@ public final class SaltsSingleton {
 		return userSaltsMapping.get(user);
 	}
 	
-	public final String createSaltedPassword(String userName, String password) throws Exception {
+	public static final String createSaltedPassword(String userName, String password) throws Exception {
 		List<Salt> salts;
 		
 		// Generate the random salt

@@ -27,8 +27,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class UsersSingleton {
 
-	private static final Hashtable<String, String> userPasswordMapping = new Hashtable<String, String>();
-	private static final Hashtable<String, String> userRoleMapping = new Hashtable<String, String>();
+	private static Hashtable<String, String> userPasswordMapping = new Hashtable<String, String>();
+	private static Hashtable<String, String> userRoleMapping = new Hashtable<String, String>();
 	private static UsersSingleton theUsers = null;
 	
 	private UsersSingleton() {
@@ -46,14 +46,14 @@ public final class UsersSingleton {
 		if (UsersSingleton.userRoleMapping == null) {
 			loadUsers();
 		}
-		return Collections.unmodifiableMap(userRoleMapping);
+		return userRoleMapping;
 	}
 
 	public static final Map<String, String> getUserPasswordMapping() throws Exception {
 		if (UsersSingleton.userPasswordMapping == null) {
 			loadUsers();
 		}
-		return Collections.unmodifiableMap(userPasswordMapping);
+		return userPasswordMapping;
 	}
 
 	public static final boolean createPasswordMapping(String userName, String password, String role) throws Exception {

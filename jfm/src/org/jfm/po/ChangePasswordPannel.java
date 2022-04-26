@@ -37,6 +37,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.asu.ser335.jfm.RolesSingleton;
+import edu.asu.ser335.jfm.SaltsSingleton;
+import edu.asu.ser335.jfm.UsersSingleton;
 import io.whitfin.siphash.SipHasher;
 
 /**
@@ -125,14 +127,43 @@ public class ChangePasswordPannel extends JFrame implements ActionListener {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String userName = textUsername.getText();
+		
+	    /* Change Password Action */
+	    String userName = textUsername.getText();
 		// String userName = (String) roleList.getSelectedItem();
 		String password = String.valueOf(fieldPassword.getPassword());
 		String role = (String) roleList.getSelectedItem();
+		boolean status = true;
 		
-		// TODO: for you to complete!
-		JOptionPane.showMessageDialog(null, "NOT IMPLEMENETD YET!!");
-
+		if(userName.isEmpty() || password.isEmpty() || role.isEmpty()) {
+		    status = false;
+		}
+		
+		else {
+		try {
+            if (UsersSingleton.getUserRoleMapping().containsKey(userName)
+                    && UsersSingleton.getUserRoleMapping().get(userName).equals(role.trim())) {
+                
+                // remove old user salt
+                SaltsSingleton.getUserSaltsMapping().remove(userName); 
+                
+                // remove old user-saltedPassword mapping
+                UsersSingleton.getUserPasswordMapping().remove(userName);
+                
+                // remove old user role
+                UsersSingleton.getUserRoleMapping().remove(userName);
+                
+                // simply create a new user with different password
+               UsersSingleton.createPasswordMapping(userName, password, role);
+   
+            }
+        } catch (Exception e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+            status = false;
+        }
+		}
+		JOptionPane.showMessageDialog(null, status ? "Password changed" : "Password change failed");
 	}
 
 }
