@@ -128,6 +128,7 @@ public class LoginPannel extends JFrame implements ActionListener {
 		String password = String.valueOf(fieldPassword.getPassword());
 		role = (String) roleList.getSelectedItem();
 		
+		// SER335 LAB6 TASK1
 		/* monitor using observer pattern */
 		LoginMonitor loginMonitor = new LoginMonitor();
 		Validation validation = new Validation();
@@ -160,6 +161,7 @@ public class LoginPannel extends JFrame implements ActionListener {
 		}
 	}
 
+	// SER335 LAB6 TASK1
 	class Validation extends Observable {
 
 	    String uName, pwd, role;
@@ -199,7 +201,8 @@ public class LoginPannel extends JFrame implements ActionListener {
 	        return true;
 	    }
 	}
-	
+
+	// SER335 LAB6 TASK1
 	/* Login Activity Observer, logs the failed login attempt */
 	class LoginMonitor implements Observer {
 
